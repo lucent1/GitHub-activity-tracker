@@ -1,9 +1,14 @@
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+*/
 package cmd
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/spf13/cobra"
 )
 
 var client = &http.Client{}
@@ -27,7 +32,27 @@ type Event struct {
 	} `json:"payload"`
 }
 
-func FetchUserEvents(username string) {
+// activityCmd represents the activity command
+var username string
+
+var activityCmd = &cobra.Command{
+	Use:   "activity",
+	Short: "Fetch GitHub user activity",
+	Run: func(cmd *cobra.Command, args []string) {
+		if username == "" {
+			fmt.Println("Please provide a GitHub username using --user")
+			return
+		}
+		fetchUserEvents(username)
+	},
+}
+
+func init() {
+	activityCmd.Flags().StringVarP(&username, "user", "u", "", "GitHub username")
+	rootCmd.AddCommand(activityCmd)
+}
+
+func fetchUserEvents(username string) {
 	url := fmt.Sprintf("https://api.github.com/users/%s/events", username)
 
 	req, err := http.NewRequest("GET", url, nil)

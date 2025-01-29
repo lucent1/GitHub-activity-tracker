@@ -1,9 +1,14 @@
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+*/
 package cmd
 
 import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/spf13/cobra"
 )
 
 type Repository struct {
@@ -23,7 +28,25 @@ type Repository struct {
 	ForksCount      int    `json:"forks_count"`
 }
 
-func FetchUserRepos(username string) {
+// reposCmd represents the repos command
+var reposCmd = &cobra.Command{
+	Use:   "repos",
+	Short: "Fetch user repositories",
+	Run: func(cmd *cobra.Command, args []string) {
+		if username == "" {
+			fmt.Println("Please provide a GitHub username using --user")
+			return
+		}
+		fetchUserRepos(username)
+	},
+}
+
+func init() {
+	reposCmd.Flags().StringVarP(&username, "user", "u", "", "GitHub username")
+	rootCmd.AddCommand(reposCmd)
+}
+
+func fetchUserRepos(username string) {
 	url := fmt.Sprintf("https://api.github.com/users/%s/repos", username)
 
 	req, err := http.NewRequest("GET", url, nil)
