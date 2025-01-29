@@ -9,14 +9,22 @@ import (
 var client = &http.Client{}
 
 type Event struct {
-	ID   string `json:"id"`
-	Type string `json:"type"`
-	Repo struct {
+	Type      string `json:"type"`
+	CreatedAt string `json:"created_at"`
+	Repo      struct {
 		Name string `json:"name"`
 	} `json:"repo"`
-	Actor struct {
-		Login string `json:"login"`
-	} `json:"actor"`
+	Payload struct {
+		Size    int `json:"size"`
+		Commits []struct {
+			Sha     string `json:"sha"`
+			Message string `json:"message"`
+			Author  struct {
+				Name  string `json:"name"`
+				Email string `json:"email"`
+			} `json:"author"`
+		} `json:"commits"`
+	} `json:"payload"`
 }
 
 func FetchUserEvents(username string) {
@@ -35,7 +43,7 @@ func FetchUserEvents(username string) {
 	}
 	defer resp.Body.Close()
 
-	// Check the status code
+	// Check the status code (200)
 	if resp.StatusCode != http.StatusOK {
 		fmt.Printf("Error: %s\n", resp.Status)
 		return
@@ -48,6 +56,13 @@ func FetchUserEvents(username string) {
 	}
 
 	for _, event := range events {
-		fmt.Printf("Event ID: %s, Type: %s, Repo: %s\n", event.ID, event.Type, event.Repo.Name)
+		if event.Type == "PushEvent" {
+			fmt.Printf("Push event in repo: %s on %s\n", event.Repo.Name, event.CreatedAt)
+			fmt.Printf("Number of commits: %d\n", event.Payload.Size)
+
+			for _, commit := range event.Payload.Commits {
+				fmt.Printf("Commit: %s - %s by %s\n", commit.Sha, commit.Message, commit.Author.Name)
+			}
+		}
 	}
 }
